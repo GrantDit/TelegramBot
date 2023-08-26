@@ -9,13 +9,14 @@ import com.pengrad.telegrambot.request.GetFile;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.GetFileResponse;
 import com.pengrad.telegrambot.response.SendResponse;
+import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import pro.sky.telegrambot.entity.NotificationTask;
+import pro.sky.telegrambot.service.NotificationTaskService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,27 +30,27 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.time.LocalDateTime.parse;
-
 @Component
 public class TelegramBotUpdatesListener implements UpdatesListener {
-
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
     private final Pattern pattern = Pattern.compile(
             "(\\d{1,2}\\.\\d{1,2}\\.\\d{4} \\d{1,2}:\\d{2})\\s+([А-я\\d\\s.,!?:]+)"
     );
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-    private final TelegramBot telegramBot;
 
-    public TelegramBotUpdatesListener(TelegramBot telegramBot) {
+    private final TelegramBot telegramBot;
+    private final NotificationTaskService notificationTaskService;
+
+    public TelegramBotUpdatesListener(TelegramBot telegramBot, NotificationTaskService notificationTaskService) {
         this.telegramBot = telegramBot;
+        this.notificationTaskService = notificationTaskService;
     }
 
     @PostConstruct
-    private void init() {
+    public void init() {
         telegramBot.setUpdatesListener(this);
-
     }
+
     @Override
     public int process(List<Update> updates) {
         try {
